@@ -1,9 +1,9 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Consumo de Solventes HPLC</title>
+<!doctype html><html lang="en"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>HPLC Solvent Consumption</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
 <style>
-/* Layout: duas colunas (entradas | resultados e gráfico); uma coluna em ecrãs estreitos. */
+/* Layout: two columns (inputs | results and chart); one column on narrow screens. */
 :root {
   --bg: #f4f6f4;
   --surface: #ffffff;
@@ -152,30 +152,30 @@ svg.chart .grid-l { stroke: var(--line); stroke-width: 1; }
 </style>
 
 <div class="wrap">
-<nav class="pgnav" aria-label="Navegação"><a href="index.html">← Menu</a><span class="pgname">Simulador 2 · Calculadora de consumo de solventes</span></nav>
+<nav class="pgnav" aria-label="Navigation"><a href="index.html">← Menu</a><span class="pgname">Simulator 2 · Solvent consumption calculator</span></nav>
   <header>
-    <h1>Consumo de solventes HPLC</h1>
-    <p class="sub">Volume de A, B, C e D a preparar para um gradiente quaternário, com margem de segurança.</p>
+    <h1>HPLC solvent consumption</h1>
+    <p class="sub">Volume of solvents A, B, C and D to prepare for a quaternary gradient, with a safety margin.</p>
   </header>
 
   <div class="grid">
     <div class="col">
       <section class="panel" aria-labelledby="h-par">
-        <h2 id="h-par">Parâmetros</h2>
+        <h2 id="h-par">Parameters</h2>
         <div class="params">
-          <div><label for="flow">Fluxo (ml/min)</label><input id="flow" type="number" inputmode="decimal" step="any" min="0" value="1.0"></div>
-          <div><label for="inj">Injeções</label><input id="inj" type="number" inputmode="numeric" step="1" min="1" value="10"></div>
-          <div><label for="exc">Excesso (%)</label><input id="exc" type="number" inputmode="decimal" step="any" min="0" value="10"></div>
+          <div><label for="flow">Flow rate (mL/min)</label><input id="flow" type="number" inputmode="decimal" step="any" min="0" value="1.0"></div>
+          <div><label for="inj">Injections</label><input id="inj" type="number" inputmode="numeric" step="1" min="1" value="10"></div>
+          <div><label for="exc">Excess (%)</label><input id="exc" type="number" inputmode="decimal" step="any" min="0" value="10"></div>
         </div>
       </section>
 
       <section class="panel" aria-labelledby="h-grad">
-        <h2 id="h-grad">Programa de gradiente</h2>
+        <h2 id="h-grad">Gradient program</h2>
         <div class="scroll">
           <table class="gt">
             <thead>
               <tr>
-                <th>Tempo (min)</th>
+                <th>Time (min)</th>
                 <th><span class="dot c0"></span>%A</th>
                 <th><span class="dot c1"></span>%B</th>
                 <th><span class="dot c2"></span>%C</th>
@@ -187,16 +187,16 @@ svg.chart .grid-l { stroke: var(--line); stroke-width: 1; }
             <tbody id="gbody"></tbody>
           </table>
         </div>
-        <button type="button" class="addbtn" id="addrow">Adicionar ponto</button>
+        <button type="button" class="addbtn" id="addrow">Add point</button>
       </section>
 
       <section class="panel" aria-labelledby="h-nm">
-        <h2 id="h-nm">Nomes dos solventes</h2>
+        <h2 id="h-nm">Solvent names</h2>
         <div class="names">
-          <div class="nm"><span class="dot c0"></span><input id="name0" type="text" value="H₂O + 0,1% FA" aria-label="Nome do solvente A"></div>
-          <div class="nm"><span class="dot c1"></span><input id="name1" type="text" value="ACN" aria-label="Nome do solvente B"></div>
-          <div class="nm"><span class="dot c2"></span><input id="name2" type="text" value="MeOH" aria-label="Nome do solvente C"></div>
-          <div class="nm"><span class="dot c3"></span><input id="name3" type="text" value="H₂O" aria-label="Nome do solvente D"></div>
+          <div class="nm"><span class="dot c0"></span><input id="name0" type="text" value="H₂O + 0.1% FA" aria-label="Name of solvent A"></div>
+          <div class="nm"><span class="dot c1"></span><input id="name1" type="text" value="ACN" aria-label="Name of solvent B"></div>
+          <div class="nm"><span class="dot c2"></span><input id="name2" type="text" value="MeOH" aria-label="Name of solvent C"></div>
+          <div class="nm"><span class="dot c3"></span><input id="name3" type="text" value="H₂O" aria-label="Name of solvent D"></div>
         </div>
       </section>
     </div>
@@ -205,16 +205,16 @@ svg.chart .grid-l { stroke: var(--line); stroke-width: 1; }
       <ul class="msgs" id="msgs" aria-live="polite"></ul>
 
       <section class="panel" aria-labelledby="h-res">
-        <h2 id="h-res">Volumes a preparar</h2>
+        <h2 id="h-res">Volumes to prepare</h2>
         <dl class="facts">
-          <div><dt>Tempo de análise</dt><dd id="f-time">–</dd></div>
-          <div><dt>Por injeção</dt><dd id="f-inj">–</dd></div>
-          <div><dt>Total com excesso</dt><dd id="f-tot">–</dd></div>
+          <div><dt>Run time</dt><dd id="f-time">–</dd></div>
+          <div><dt>Per injection</dt><dd id="f-inj">–</dd></div>
+          <div><dt>Total with excess</dt><dd id="f-tot">–</dd></div>
         </dl>
         <div class="scroll">
           <table class="rt">
             <thead>
-              <tr><th>Solvente</th><th>Por injeção</th><th>Total teórico</th><th id="th-ex">Com excesso</th></tr>
+              <tr><th>Solvent</th><th>Per injection</th><th>Theoretical total</th><th id="th-ex">With excess</th></tr>
             </thead>
             <tbody id="rbody"></tbody>
             <tfoot id="rfoot"></tfoot>
@@ -223,22 +223,22 @@ svg.chart .grid-l { stroke: var(--line); stroke-width: 1; }
       </section>
 
       <section class="panel" aria-labelledby="h-ch">
-        <h2 id="h-ch">Composição ao longo da corrida</h2>
-        <svg class="chart" id="chart" viewBox="0 0 600 250" role="img" aria-label="Gráfico de áreas empilhadas da composição dos solventes ao longo do tempo"></svg>
+        <h2 id="h-ch">Composition over the run</h2>
+        <svg class="chart" id="chart" viewBox="0 0 600 250" role="img" aria-label="Stacked area chart of the solvent composition over time"></svg>
         <div class="legend" id="legend"></div>
       </section>
 
       <section class="panel" aria-labelledby="h-nt">
-        <h2 id="h-nt">Pressupostos</h2>
+        <h2 id="h-nt">Assumptions</h2>
         <ul class="notes">
-          <li>Interpolação linear entre pontos. Dois pontos com o mesmo tempo formam um degrau.</li>
-          <li>O último tempo do programa é o tempo de análise de uma injeção, incluindo o reequilíbrio se este fizer parte do método.</li>
-          <li>Purgas, lavagens e condicionamento fora do método não entram na conta. O excesso é que os cobre.</li>
+          <li>Linear interpolation between points. Two points with the same time form a step.</li>
+          <li>The last time in the program is the run time of one injection, including re-equilibration if it is part of the method.</li>
+          <li>Purges, washes and conditioning outside the method are not counted. The excess is what covers them.</li>
         </ul>
       </section>
     </div>
   </div>
-<footer class="pgfoot">© 2026 Paulo Sérgio Marques Pereira. Desenvolvido para o curso Intensive Hands-On HPLC Course (1st edition). Licenciado sob <a href="licenca.html">CC BY-NC 4.0</a>: pode partilhar e adaptar para fins não comerciais, com atribuição.<br>O autor do software não se responsabiliza por qualquer dano em sistemas físicos de HPLC. O simulador deve ser utilizado com sentido crítico e sempre confirmado por análise prática e cálculos efetuados.</footer>
+<footer class="pgfoot">© 2026 Paulo Sérgio Marques Pereira. Developed for the Intensive Hands-On HPLC Course (1st edition). Licensed under <a href="licenca.html">CC BY-NC 4.0</a>: share and adapt for non-commercial use, with attribution.<br>The author of the software accepts no liability for any damage to physical HPLC systems. The simulator should be used with critical judgement and always confirmed by practical analysis and calculations.</footer>
 </div>
 
 <script>
@@ -263,10 +263,10 @@ svg.chart .grid-l { stroke: var(--line); stroke-width: 1; }
   }
   function fmt(x, d) {
     d = d == null ? 1 : d;
-    return x.toLocaleString('pt-PT', { minimumFractionDigits: d, maximumFractionDigits: d });
+    return x.toLocaleString('en-GB', { minimumFractionDigits: d, maximumFractionDigits: d });
   }
-  function fmtVol(ml) { return fmt(ml, 1) + ' ml'; }
-  function name(k) { var v = $('name' + k).value.trim(); return v || ('Solvente ' + LET[k]); }
+  function fmtVol(ml) { return fmt(ml, 1) + ' mL'; }
+  function name(k) { var v = $('name' + k).value.trim(); return v || ('Solvent ' + LET[k]); }
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
   function valStr(x) { return isFinite(x) ? String(x) : ''; }
@@ -275,12 +275,12 @@ svg.chart .grid-l { stroke: var(--line); stroke-width: 1; }
     var html = '';
     rows.forEach(function (r, i) {
       html += '<tr>' +
-        '<td><input type="number" inputmode="decimal" step="any" min="0" id="t' + i + '" data-i="' + i + '" data-k="t" value="' + valStr(r.t) + '" aria-label="Tempo, ponto ' + (i + 1) + '"></td>';
+        '<td><input type="number" inputmode="decimal" step="any" min="0" id="t' + i + '" data-i="' + i + '" data-k="t" value="' + valStr(r.t) + '" aria-label="Time, point ' + (i + 1) + '"></td>';
       for (var k = 0; k < 4; k++) {
-        html += '<td><input type="number" inputmode="decimal" step="any" min="0" max="100" id="p' + i + '_' + k + '" data-i="' + i + '" data-k="' + k + '" value="' + valStr(r.p[k]) + '" aria-label="%' + LET[k] + ', ponto ' + (i + 1) + '"></td>';
+        html += '<td><input type="number" inputmode="decimal" step="any" min="0" max="100" id="p' + i + '_' + k + '" data-i="' + i + '" data-k="' + k + '" value="' + valStr(r.p[k]) + '" aria-label="%' + LET[k] + ', point ' + (i + 1) + '"></td>';
       }
       html += '<td class="sum" id="sum' + i + '"></td>' +
-        '<td class="rm"><button type="button" class="iconbtn" data-rm="' + i + '" aria-label="Remover ponto ' + (i + 1) + '"' + (rows.length <= 2 ? ' disabled' : '') + '>×</button></td></tr>';
+        '<td class="rm"><button type="button" class="iconbtn" data-rm="' + i + '" aria-label="Remove point ' + (i + 1) + '"' + (rows.length <= 2 ? ' disabled' : '') + '>×</button></td></tr>';
     });
     $('gbody').innerHTML = html;
   }
@@ -322,7 +322,7 @@ svg.chart .grid-l { stroke: var(--line); stroke-width: 1; }
     for (var t = 0; t <= T + 1e-9; t += step) {
       out += '<text x="' + X(t) + '" y="' + (H - 16) + '" text-anchor="middle">' + fmt(t, step < 1 ? 1 : 0) + '</text>';
     }
-    out += '<text x="' + (m.l + iw / 2) + '" y="' + (H - 2) + '" text-anchor="middle">tempo (min)</text>';
+    out += '<text x="' + (m.l + iw / 2) + '" y="' + (H - 2) + '" text-anchor="middle">time (min)</text>';
     for (var k = 0; k < 4; k++) {
       var up = [], lo = [], cum;
       pts.forEach(function (p) {
@@ -360,9 +360,9 @@ svg.chart .grid-l { stroke: var(--line); stroke-width: 1; }
     $('flow').classList.toggle('bad', !(flow > 0));
     $('inj').classList.toggle('bad', !(inj >= 1));
     $('exc').classList.toggle('bad', !(exc >= 0));
-    if (!(flow > 0)) errs.push('O fluxo tem de ser maior que 0.');
-    if (!(inj >= 1)) errs.push('O número de injeções tem de ser pelo menos 1.');
-    if (!(exc >= 0)) errs.push('O excesso tem de ser 0 ou mais.');
+    if (!(flow > 0)) errs.push('Flow rate must be greater than 0.');
+    if (!(inj >= 1)) errs.push('The number of injections must be at least 1.');
+    if (!(exc >= 0)) errs.push('Excess must be 0 or more.');
 
     var empty = false, order = false, i, k;
     for (i = 0; i < rows.length; i++) {
@@ -370,16 +370,16 @@ svg.chart .grid-l { stroke: var(--line); stroke-width: 1; }
       for (k = 0; k < 4; k++) if (!isFinite(rows[i].p[k]) || rows[i].p[k] < 0) empty = true;
       if (i > 0 && rows[i].t < rows[i - 1].t) order = true;
     }
-    if (empty) errs.push('Há campos vazios ou negativos no programa de gradiente.');
-    if (order) errs.push('Os tempos do gradiente têm de estar por ordem crescente.');
+    if (empty) errs.push('The gradient program has empty or negative fields.');
+    if (order) errs.push('Gradient times must be in ascending order.');
 
     var T = rows[rows.length - 1].t;
-    if (!empty && !order && !(T > 0)) errs.push('O tempo final do gradiente tem de ser maior que 0.');
-    if (!empty && rows[0].t !== 0) warns.push('O primeiro ponto não está em 0 min. Assumi que a sua composição se mantém desde o início da corrida.');
+    if (!empty && !order && !(T > 0)) errs.push('The final gradient time must be greater than 0.');
+    if (!empty && rows[0].t !== 0) warns.push('The first point is not at 0 min. Its composition is assumed to hold from the start of the run.');
     if (!empty) {
       var badRows = [];
       rows.forEach(function (r, j) { if (Math.abs(rowSum(r) - 100) > 0.01) badRows.push(j + 1); });
-      if (badRows.length) warns.push('A soma das percentagens não é 100% no(s) ponto(s) ' + badRows.join(', ') + '. Os volumes seguem os valores introduzidos.');
+      if (badRows.length) warns.push('The percentages do not sum to 100% at point(s) ' + badRows.join(', ') + '. Volumes follow the values entered.');
     }
 
     $('msgs').innerHTML = errs.concat(warns).map(function (m) { return '<li>' + esc(m) + '</li>'; }).join('');
@@ -404,7 +404,7 @@ svg.chart .grid-l { stroke: var(--line); stroke-width: 1; }
     }
     $('rbody').innerHTML = h;
     $('rfoot').innerHTML = '<tr><td>Total</td><td>' + fmtVol(sPer) + '</td><td>' + fmtVol(sTot) + '</td><td class="final">' + fmtVol(sEx) + (sEx >= 1000 ? '<small>' + fmt(sEx / 1000, 2) + ' L</small>' : '') + '</td></tr>';
-    $('th-ex').textContent = 'Com excesso (+' + fmt(exc, exc % 1 === 0 ? 0 : 1) + '%)';
+    $('th-ex').textContent = 'With excess (+' + fmt(exc, exc % 1 === 0 ? 0 : 1) + '%)';
     $('f-time').textContent = fmt(T, T % 1 === 0 ? 0 : 1) + ' min';
     $('f-inj').textContent = fmtVol(sPer);
     $('f-tot').textContent = fmtVol(sEx);
