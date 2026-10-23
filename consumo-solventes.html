@@ -1,0 +1,441 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Consumo de Solventes HPLC</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: duas colunas (entradas | resultados e gráfico); uma coluna em ecrãs estreitos. */
+:root {
+  --bg: #f4f6f4;
+  --surface: #ffffff;
+  --field: #fbfcfb;
+  --fg: #19231f;
+  --muted: #5a6a62;
+  --line: #d8dfdb;
+  --accent: #0e6b59;
+  --accent-fg: #ffffff;
+  --warn: #b04a12;
+  --warn-bg: #fbeee4;
+  --sa: #2b6cb0;
+  --sb: #d9822b;
+  --sc: #3a9a6b;
+  --sd: #8a63b8;
+  --font-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-num: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #101614;
+    --surface: #18201d;
+    --field: #131a17;
+    --fg: #e5ebe7;
+    --muted: #97a69e;
+    --line: #2b3732;
+    --accent: #4cc2a6;
+    --accent-fg: #0a1411;
+    --warn: #eb9a5b;
+    --warn-bg: #2b1f15;
+    --sa: #6aa6e8;
+    --sb: #eba35a;
+    --sc: #62c391;
+    --sd: #b794e0;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #101614;
+  --surface: #18201d;
+  --field: #131a17;
+  --fg: #e5ebe7;
+  --muted: #97a69e;
+  --line: #2b3732;
+  --accent: #4cc2a6;
+  --accent-fg: #0a1411;
+  --warn: #eb9a5b;
+  --warn-bg: #2b1f15;
+  --sa: #6aa6e8;
+  --sb: #eba35a;
+  --sc: #62c391;
+  --sd: #b794e0;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+  padding-block: 24px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.wrap { max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+h1 { font-size: 1.5rem; line-height: 1.2; font-weight: 700; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+.sub { margin: 4px 0 0; color: var(--muted); }
+h2 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.09em; color: var(--muted); font-weight: 600; margin: 0 0 12px; }
+
+.grid { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 880px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.col { display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; min-width: 0; }
+
+label, .lbl { display: block; font-size: 0.75rem; color: var(--muted); font-weight: 500; margin-bottom: 4px; }
+input[type="text"], input[type="number"] {
+  width: 100%; min-width: 0;
+  font-family: var(--font-num); font-size: 0.9rem;
+  color: var(--fg); background: var(--field);
+  border: 1px solid var(--line); border-radius: 6px;
+  padding: 8px 8px;
+}
+input[type="text"] { font-family: var(--font-body); }
+input:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+input.bad { border-color: var(--warn); }
+
+.params { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.names { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.names .nm { display: flex; align-items: center; gap: 8px; }
+.names .nm input { flex: 1; }
+
+.dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; flex: none; }
+.c0 { background: var(--sa); } .c1 { background: var(--sb); } .c2 { background: var(--sc); } .c3 { background: var(--sd); }
+
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; }
+.gt { min-width: 340px; }
+.gt th { font-size: 0.7rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; text-align: right; padding: 0 3px 6px; white-space: nowrap; }
+.gt th .dot { margin-right: 4px; vertical-align: 0; }
+.gt td { padding: 3px; }
+.gt td input { text-align: right; padding: 7px 5px; }
+.gt .sum { font-family: var(--font-num); font-size: 0.8rem; text-align: right; color: var(--muted); white-space: nowrap; padding-left: 6px; }
+.gt .sum.bad { color: var(--warn); font-weight: 600; }
+.gt .rm { width: 28px; text-align: center; }
+button { font-family: var(--font-body); cursor: pointer; }
+.iconbtn { background: none; border: 0; color: var(--muted); font-size: 1.1rem; line-height: 1; width: 26px; height: 26px; border-radius: 6px; }
+.iconbtn:hover:not(:disabled) { color: var(--warn); }
+.iconbtn:disabled { opacity: 0.3; cursor: default; }
+.addbtn { margin-top: 10px; background: none; border: 1px solid var(--line); color: var(--fg); border-radius: 6px; padding: 7px 12px; font-size: 0.85rem; font-weight: 500; }
+.addbtn:hover { border-color: var(--accent); color: var(--accent); }
+
+.msgs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.msgs:empty { display: none; }
+.msgs li { background: var(--warn-bg); color: var(--warn); border-radius: 6px; padding: 8px 10px; font-size: 0.85rem; }
+
+.facts { display: flex; flex-wrap: wrap; gap: 4px 28px; margin: 0 0 14px; }
+.facts div { min-width: 0; }
+.facts dt { font-size: 0.72rem; color: var(--muted); font-weight: 500; }
+.facts dd { margin: 0; font-family: var(--font-num); font-size: 1rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+
+.rt { min-width: 420px; font-variant-numeric: tabular-nums; }
+.rt th { font-size: 0.7rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; text-align: right; padding: 0 8px 8px; }
+.rt th:first-child, .rt td:first-child { text-align: left; padding-left: 0; }
+.rt td { padding: 9px 8px; border-top: 1px solid var(--line); text-align: right; font-family: var(--font-num); font-size: 0.9rem; }
+.rt td:first-child { font-family: var(--font-body); display: flex; align-items: center; gap: 8px; }
+.rt td:first-child .l { color: var(--muted); font-size: 0.8rem; }
+.rt td.final { font-weight: 600; color: var(--accent); }
+.rt td small { display: block; font-size: 0.7rem; color: var(--muted); font-weight: 400; }
+.rt tfoot td { font-weight: 600; border-top: 2px solid var(--fg); }
+
+svg.chart { display: block; width: 100%; height: auto; }
+svg.chart text { fill: var(--muted); font-family: var(--font-num); font-size: 11px; }
+svg.chart .grid-l { stroke: var(--line); stroke-width: 1; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; margin-top: 8px; font-size: 0.8rem; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+
+.notes { margin: 0; padding-left: 18px; color: var(--muted); font-size: 0.85rem; display: flex; flex-direction: column; gap: 4px; }
+.pgnav{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;justify-content:space-between;margin:0 0 14px;font-size:13px}
+.pgnav a{color:var(--accent);text-decoration:none;font-weight:500;padding:6px 0}
+.pgnav a:hover{text-decoration:underline}
+.pgnav .pgname{color:var(--muted)}
+.pgfoot{margin-top:8px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;line-height:1.5}
+.pgfoot a{color:var(--accent)}
+</style>
+
+<div class="wrap">
+<nav class="pgnav" aria-label="Navegação"><a href="index.html">← Menu</a><span class="pgname">Simulador 2 · Calculadora de consumo de solventes</span></nav>
+  <header>
+    <h1>Consumo de solventes HPLC</h1>
+    <p class="sub">Volume de A, B, C e D a preparar para um gradiente quaternário, com margem de segurança.</p>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <section class="panel" aria-labelledby="h-par">
+        <h2 id="h-par">Parâmetros</h2>
+        <div class="params">
+          <div><label for="flow">Fluxo (ml/min)</label><input id="flow" type="number" inputmode="decimal" step="any" min="0" value="1.0"></div>
+          <div><label for="inj">Injeções</label><input id="inj" type="number" inputmode="numeric" step="1" min="1" value="10"></div>
+          <div><label for="exc">Excesso (%)</label><input id="exc" type="number" inputmode="decimal" step="any" min="0" value="10"></div>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-grad">
+        <h2 id="h-grad">Programa de gradiente</h2>
+        <div class="scroll">
+          <table class="gt">
+            <thead>
+              <tr>
+                <th>Tempo (min)</th>
+                <th><span class="dot c0"></span>%A</th>
+                <th><span class="dot c1"></span>%B</th>
+                <th><span class="dot c2"></span>%C</th>
+                <th><span class="dot c3"></span>%D</th>
+                <th>Σ</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="gbody"></tbody>
+          </table>
+        </div>
+        <button type="button" class="addbtn" id="addrow">Adicionar ponto</button>
+      </section>
+
+      <section class="panel" aria-labelledby="h-nm">
+        <h2 id="h-nm">Nomes dos solventes</h2>
+        <div class="names">
+          <div class="nm"><span class="dot c0"></span><input id="name0" type="text" value="H₂O + 0,1% FA" aria-label="Nome do solvente A"></div>
+          <div class="nm"><span class="dot c1"></span><input id="name1" type="text" value="ACN" aria-label="Nome do solvente B"></div>
+          <div class="nm"><span class="dot c2"></span><input id="name2" type="text" value="MeOH" aria-label="Nome do solvente C"></div>
+          <div class="nm"><span class="dot c3"></span><input id="name3" type="text" value="H₂O" aria-label="Nome do solvente D"></div>
+        </div>
+      </section>
+    </div>
+
+    <div class="col">
+      <ul class="msgs" id="msgs" aria-live="polite"></ul>
+
+      <section class="panel" aria-labelledby="h-res">
+        <h2 id="h-res">Volumes a preparar</h2>
+        <dl class="facts">
+          <div><dt>Tempo de análise</dt><dd id="f-time">–</dd></div>
+          <div><dt>Por injeção</dt><dd id="f-inj">–</dd></div>
+          <div><dt>Total com excesso</dt><dd id="f-tot">–</dd></div>
+        </dl>
+        <div class="scroll">
+          <table class="rt">
+            <thead>
+              <tr><th>Solvente</th><th>Por injeção</th><th>Total teórico</th><th id="th-ex">Com excesso</th></tr>
+            </thead>
+            <tbody id="rbody"></tbody>
+            <tfoot id="rfoot"></tfoot>
+          </table>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-ch">
+        <h2 id="h-ch">Composição ao longo da corrida</h2>
+        <svg class="chart" id="chart" viewBox="0 0 600 250" role="img" aria-label="Gráfico de áreas empilhadas da composição dos solventes ao longo do tempo"></svg>
+        <div class="legend" id="legend"></div>
+      </section>
+
+      <section class="panel" aria-labelledby="h-nt">
+        <h2 id="h-nt">Pressupostos</h2>
+        <ul class="notes">
+          <li>Interpolação linear entre pontos. Dois pontos com o mesmo tempo formam um degrau.</li>
+          <li>O último tempo do programa é o tempo de análise de uma injeção, incluindo o reequilíbrio se este fizer parte do método.</li>
+          <li>Purgas, lavagens e condicionamento fora do método não entram na conta. O excesso é que os cobre.</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+<footer class="pgfoot">© 2026 Paulo Sérgio Marques Pereira. Desenvolvido para o curso Intensive Hands-On HPLC Course (1st edition). Licenciado sob <a href="licenca.html">CC BY-NC 4.0</a>: pode partilhar e adaptar para fins não comerciais, com atribuição.<br>O autor do software não se responsabiliza por qualquer dano em sistemas físicos de HPLC. O simulador deve ser utilizado com sentido crítico e sempre confirmado por análise prática e cálculos efetuados.</footer>
+</div>
+
+<script>
+(function () {
+  var LET = ['A', 'B', 'C', 'D'];
+  var rows = [
+    { t: 0,    p: [90, 10, 0, 0] },
+    { t: 2,    p: [90, 10, 0, 0] },
+    { t: 12,   p: [10, 90, 0, 0] },
+    { t: 15,   p: [10, 90, 0, 0] },
+    { t: 15.1, p: [90, 10, 0, 0] },
+    { t: 20,   p: [90, 10, 0, 0] }
+  ];
+  var COLORS = ['var(--sa)', 'var(--sb)', 'var(--sc)', 'var(--sd)'];
+
+  function $(id) { return document.getElementById(id); }
+  function num(v) {
+    var s = String(v).trim().replace(',', '.');
+    if (s === '') return NaN;
+    var x = Number(s);
+    return isFinite(x) ? x : NaN;
+  }
+  function fmt(x, d) {
+    d = d == null ? 1 : d;
+    return x.toLocaleString('pt-PT', { minimumFractionDigits: d, maximumFractionDigits: d });
+  }
+  function fmtVol(ml) { return fmt(ml, 1) + ' ml'; }
+  function name(k) { var v = $('name' + k).value.trim(); return v || ('Solvente ' + LET[k]); }
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+
+  function valStr(x) { return isFinite(x) ? String(x) : ''; }
+
+  function renderTable() {
+    var html = '';
+    rows.forEach(function (r, i) {
+      html += '<tr>' +
+        '<td><input type="number" inputmode="decimal" step="any" min="0" id="t' + i + '" data-i="' + i + '" data-k="t" value="' + valStr(r.t) + '" aria-label="Tempo, ponto ' + (i + 1) + '"></td>';
+      for (var k = 0; k < 4; k++) {
+        html += '<td><input type="number" inputmode="decimal" step="any" min="0" max="100" id="p' + i + '_' + k + '" data-i="' + i + '" data-k="' + k + '" value="' + valStr(r.p[k]) + '" aria-label="%' + LET[k] + ', ponto ' + (i + 1) + '"></td>';
+      }
+      html += '<td class="sum" id="sum' + i + '"></td>' +
+        '<td class="rm"><button type="button" class="iconbtn" data-rm="' + i + '" aria-label="Remover ponto ' + (i + 1) + '"' + (rows.length <= 2 ? ' disabled' : '') + '>×</button></td></tr>';
+    });
+    $('gbody').innerHTML = html;
+  }
+
+  function rowSum(r) {
+    var s = 0;
+    for (var k = 0; k < 4; k++) s += r.p[k];
+    return s;
+  }
+
+  function updateSums() {
+    rows.forEach(function (r, i) {
+      var el = $('sum' + i);
+      if (!el) return;
+      var s = rowSum(r);
+      if (!isFinite(s)) { el.textContent = '–'; el.className = 'sum bad'; return; }
+      el.textContent = fmt(s, Math.abs(s - Math.round(s)) < 0.005 ? 0 : 1);
+      el.className = 'sum' + (Math.abs(s - 100) > 0.01 ? ' bad' : '');
+    });
+  }
+
+  function niceStep(T) {
+    var raw = T / 6, steps = [0.5, 1, 2, 5, 10, 15, 20, 30, 60, 120, 240];
+    for (var i = 0; i < steps.length; i++) if (steps[i] >= raw) return steps[i];
+    return steps[steps.length - 1];
+  }
+
+  function drawChart(pts, T) {
+    var W = 600, H = 250, m = { l: 40, r: 12, t: 10, b: 34 };
+    var iw = W - m.l - m.r, ih = H - m.t - m.b;
+    function X(t) { return m.l + (t / T) * iw; }
+    function Y(v) { return m.t + ih - (Math.max(0, Math.min(v, 100)) / 100) * ih; }
+    var out = '';
+    [0, 25, 50, 75, 100].forEach(function (v) {
+      out += '<line class="grid-l" x1="' + m.l + '" x2="' + (W - m.r) + '" y1="' + Y(v) + '" y2="' + Y(v) + '"/>' +
+        '<text x="' + (m.l - 6) + '" y="' + (Y(v) + 4) + '" text-anchor="end">' + v + '%</text>';
+    });
+    var step = niceStep(T);
+    for (var t = 0; t <= T + 1e-9; t += step) {
+      out += '<text x="' + X(t) + '" y="' + (H - 16) + '" text-anchor="middle">' + fmt(t, step < 1 ? 1 : 0) + '</text>';
+    }
+    out += '<text x="' + (m.l + iw / 2) + '" y="' + (H - 2) + '" text-anchor="middle">tempo (min)</text>';
+    for (var k = 0; k < 4; k++) {
+      var up = [], lo = [], cum;
+      pts.forEach(function (p) {
+        var a = 0, b = 0, j;
+        for (j = 0; j <= k; j++) a += p.p[j];
+        for (j = 0; j < k; j++) b += p.p[j];
+        up.push([X(p.t), Y(a)]);
+        lo.push([X(p.t), Y(b)]);
+      });
+      lo.reverse();
+      var d = 'M' + up.concat(lo).map(function (q) { return q[0].toFixed(2) + ',' + q[1].toFixed(2); }).join(' L') + ' Z';
+      out += '<path d="' + d + '" fill="' + COLORS[k] + '" stroke="var(--surface)" stroke-width="1"/>';
+    }
+    $('chart').innerHTML = out;
+  }
+
+  function renderLegend() {
+    var h = '';
+    for (var k = 0; k < 4; k++) h += '<span><i class="dot c' + k + '"></i>' + LET[k] + ' · ' + esc(name(k)) + '</span>';
+    $('legend').innerHTML = h;
+  }
+
+  function showDashes() {
+    $('f-time').textContent = '–'; $('f-inj').textContent = '–'; $('f-tot').textContent = '–';
+    var h = '';
+    for (var k = 0; k < 4; k++) h += '<tr><td><i class="dot c' + k + '"></i>' + LET[k] + ' <span class="l">' + esc(name(k)) + '</span></td><td>–</td><td>–</td><td class="final">–</td></tr>';
+    $('rbody').innerHTML = h;
+    $('rfoot').innerHTML = '';
+    $('chart').innerHTML = '';
+  }
+
+  function calc() {
+    var errs = [], warns = [];
+    var flow = num($('flow').value), inj = num($('inj').value), exc = num($('exc').value);
+    $('flow').classList.toggle('bad', !(flow > 0));
+    $('inj').classList.toggle('bad', !(inj >= 1));
+    $('exc').classList.toggle('bad', !(exc >= 0));
+    if (!(flow > 0)) errs.push('O fluxo tem de ser maior que 0.');
+    if (!(inj >= 1)) errs.push('O número de injeções tem de ser pelo menos 1.');
+    if (!(exc >= 0)) errs.push('O excesso tem de ser 0 ou mais.');
+
+    var empty = false, order = false, i, k;
+    for (i = 0; i < rows.length; i++) {
+      if (!isFinite(rows[i].t)) empty = true;
+      for (k = 0; k < 4; k++) if (!isFinite(rows[i].p[k]) || rows[i].p[k] < 0) empty = true;
+      if (i > 0 && rows[i].t < rows[i - 1].t) order = true;
+    }
+    if (empty) errs.push('Há campos vazios ou negativos no programa de gradiente.');
+    if (order) errs.push('Os tempos do gradiente têm de estar por ordem crescente.');
+
+    var T = rows[rows.length - 1].t;
+    if (!empty && !order && !(T > 0)) errs.push('O tempo final do gradiente tem de ser maior que 0.');
+    if (!empty && rows[0].t !== 0) warns.push('O primeiro ponto não está em 0 min. Assumi que a sua composição se mantém desde o início da corrida.');
+    if (!empty) {
+      var badRows = [];
+      rows.forEach(function (r, j) { if (Math.abs(rowSum(r) - 100) > 0.01) badRows.push(j + 1); });
+      if (badRows.length) warns.push('A soma das percentagens não é 100% no(s) ponto(s) ' + badRows.join(', ') + '. Os volumes seguem os valores introduzidos.');
+    }
+
+    $('msgs').innerHTML = errs.concat(warns).map(function (m) { return '<li>' + esc(m) + '</li>'; }).join('');
+    renderLegend();
+    if (errs.length) { showDashes(); return; }
+
+    var pts = rows.map(function (r) { return { t: r.t, p: r.p.slice() }; });
+    if (pts[0].t > 0) pts.unshift({ t: 0, p: pts[0].p.slice() });
+
+    var per = [0, 0, 0, 0];
+    for (i = 0; i < pts.length - 1; i++) {
+      var dt = pts[i + 1].t - pts[i].t;
+      for (k = 0; k < 4; k++) per[k] += flow * ((pts[i].p[k] + pts[i + 1].p[k]) / 200) * dt;
+    }
+    var f = 1 + exc / 100, sPer = 0, sTot = 0, sEx = 0, h = '';
+    for (k = 0; k < 4; k++) {
+      var tot = per[k] * inj, ex = tot * f;
+      sPer += per[k]; sTot += tot; sEx += ex;
+      h += '<tr><td><i class="dot c' + k + '"></i>' + LET[k] + ' <span class="l">' + esc(name(k)) + '</span></td>' +
+        '<td>' + fmtVol(per[k]) + '</td><td>' + fmtVol(tot) + '</td>' +
+        '<td class="final">' + fmtVol(ex) + (ex >= 1000 ? '<small>' + fmt(ex / 1000, 2) + ' L</small>' : '') + '</td></tr>';
+    }
+    $('rbody').innerHTML = h;
+    $('rfoot').innerHTML = '<tr><td>Total</td><td>' + fmtVol(sPer) + '</td><td>' + fmtVol(sTot) + '</td><td class="final">' + fmtVol(sEx) + (sEx >= 1000 ? '<small>' + fmt(sEx / 1000, 2) + ' L</small>' : '') + '</td></tr>';
+    $('th-ex').textContent = 'Com excesso (+' + fmt(exc, exc % 1 === 0 ? 0 : 1) + '%)';
+    $('f-time').textContent = fmt(T, T % 1 === 0 ? 0 : 1) + ' min';
+    $('f-inj').textContent = fmtVol(sPer);
+    $('f-tot').textContent = fmtVol(sEx);
+    drawChart(pts, T);
+  }
+
+  $('gbody').addEventListener('input', function (e) {
+    var el = e.target, i = +el.getAttribute('data-i'), k = el.getAttribute('data-k');
+    if (isNaN(i) || k === null) return;
+    var v = num(el.value);
+    if (k === 't') rows[i].t = v; else rows[i].p[+k] = v;
+    updateSums();
+    calc();
+  });
+  $('gbody').addEventListener('click', function (e) {
+    var b = e.target.closest ? e.target.closest('[data-rm]') : null;
+    if (!b || rows.length <= 2) return;
+    rows.splice(+b.getAttribute('data-rm'), 1);
+    renderTable(); updateSums(); calc();
+  });
+  $('addrow').addEventListener('click', function () {
+    var last = rows[rows.length - 1];
+    rows.push({ t: isFinite(last.t) ? last.t + 1 : 0, p: last.p.slice() });
+    renderTable(); updateSums(); calc();
+  });
+  ['flow', 'inj', 'exc', 'name0', 'name1', 'name2', 'name3'].forEach(function (id) {
+    $(id).addEventListener('input', calc);
+  });
+
+  renderTable(); updateSums(); calc();
+})();
+</script>
+
+</body></html>

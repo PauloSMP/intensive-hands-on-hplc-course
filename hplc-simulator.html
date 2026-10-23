@@ -1,0 +1,486 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>HPLC Retention Simulator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: controls rail left, chromatogram on top right, readouts below; on phones the chromatogram sticks to the top while sliders scroll under it. */
+:root{
+  --bg:#f2f5f8; --panel:#ffffff; --fg:#13202b; --muted:#566675; --line:#d3dce4; --grid:#e4eaef; --soft:#e9eff4;
+  --accent:#0e6a88; --accent-fg:#ffffff;
+  --c1:#1b6fb8; --c2:#c4570a; --c3:#8a3aa6; --ref:#8795a1;
+  --ok:#1b7f4b; --warn:#9a5b00; --bad:#b3261e;
+  --font-body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0e1419; --panel:#161f27; --fg:#e5ecf2; --muted:#92a3b2; --line:#283541; --grid:#202c36; --soft:#1d2933;
+    --accent:#5cc0e0; --accent-fg:#06222c;
+    --c1:#6cb4f4; --c2:#f4a85c; --c3:#d19ce8; --ref:#7f8e9b;
+    --ok:#56c98a; --warn:#e5a94a; --bad:#ff8a80; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0e1419; --panel:#161f27; --fg:#e5ecf2; --muted:#92a3b2; --line:#283541; --grid:#202c36; --soft:#1d2933;
+  --accent:#5cc0e0; --accent-fg:#06222c;
+  --c1:#6cb4f4; --c2:#f4a85c; --c3:#d19ce8; --ref:#7f8e9b;
+  --ok:#56c98a; --warn:#e5a94a; --bad:#ff8a80; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:14px;line-height:1.45;
+  padding-block:20px 32px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1240px;margin:0 auto}
+header.top{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:flex-end;justify-content:space-between;margin-bottom:16px}
+h1{font-size:22px;font-weight:600;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{margin:2px 0 0;color:var(--muted);font-size:13px}
+button{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:7px 12px;cursor:pointer}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:500}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+
+.layout{display:grid;gap:16px;grid-template-columns:minmax(0,1fr);grid-template-areas:"plot" "controls" "readouts"}
+.plot{grid-area:plot;position:sticky;top:env(safe-area-inset-top,0px);z-index:5}
+.controls{grid-area:controls}
+.readouts{grid-area:readouts;display:flex;flex-direction:column;gap:16px;min-width:0}
+@media (min-width:960px){
+  .layout{grid-template-columns:340px minmax(0,1fr);grid-template-areas:"controls plot" "controls readouts";align-items:start}
+  .plot{position:static}
+}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px;min-width:0}
+.plot{padding:10px 10px 8px}
+.plot svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;padding:4px 6px 0;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:5px;vertical-align:-1px}
+.legend .refsw{height:0;border-top:2px solid var(--ref);border-radius:0;width:16px;vertical-align:3px}
+.refline{padding:0 6px;font-size:12px;color:var(--muted);font-family:var(--font-mono)}
+
+h2{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+.grp{display:flex;flex-direction:column;gap:12px;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--line)}
+.grp:last-child{border-bottom:0;margin-bottom:0;padding-bottom:0}
+.ctl .row{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ctl label{font-weight:500}
+.ctl output{font-family:var(--font-mono);font-size:13px;color:var(--accent);font-variant-numeric:tabular-nums}
+.ctl input[type=range]{width:100%;margin:6px 0 0;accent-color:var(--accent)}
+.lim{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);font-family:var(--font-mono)}
+.seg{display:flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg label{flex:1;text-align:center;padding:7px 8px;cursor:pointer;font-weight:500;background:var(--panel);margin:0}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg input:checked + span{color:var(--accent-fg)}
+.seg label:has(input:checked){background:var(--accent);color:var(--accent-fg)}
+.seg label:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:-2px}
+select{font:inherit;color:var(--fg);background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:6px 8px;max-width:100%}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.two > div{min-width:0}
+.two label{display:block;font-size:12px;color:var(--muted);margin-bottom:3px}
+.two select{width:100%}
+.chk{display:flex;gap:8px;align-items:center}
+.exp{display:flex;flex-wrap:wrap;gap:6px}
+.exp button{padding:5px 9px;font-size:12.5px}
+details summary{cursor:pointer;font-weight:500}
+details.an{border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+details.an + details.an{margin-top:8px}
+details.an .body{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 12px;min-width:0}
+.tile .k{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.tile .v{font-family:var(--font-mono);font-size:19px;font-weight:500;font-variant-numeric:tabular-nums;margin-top:2px;overflow-wrap:anywhere}
+.tile .s{font-size:11.5px;color:var(--muted);font-family:var(--font-mono)}
+.tile.bad .v{color:var(--bad)} .tile.warn .v{color:var(--warn)}
+.tblwrap{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:520px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+td.n{font-family:var(--font-mono);font-variant-numeric:tabular-nums;text-align:right}
+th.n{text-align:right}
+tr:last-child td{border-bottom:0}
+.up{color:var(--warn)} .down{color:var(--accent)}
+.pairs{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.pair{border:1px solid var(--line);border-left-width:4px;border-radius:6px;padding:8px 10px;min-width:0}
+.pair.ok{border-left-color:var(--ok)} .pair.mid{border-left-color:var(--warn)} .pair.bad{border-left-color:var(--bad)}
+.pair .t{font-size:12px;color:var(--muted)}
+.pair .r{font-family:var(--font-mono);font-size:18px;font-weight:500}
+.pair .d{font-size:12px}
+.pair.ok .d{color:var(--ok)} .pair.mid .d{color:var(--warn)} .pair.bad .d{color:var(--bad)}
+ul.notes{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+ul.notes li.w{color:var(--warn)} ul.notes li.b{color:var(--bad)} ul.notes li.i{color:var(--muted)}
+.model{margin-top:16px}
+.model ul{margin:8px 0 0;padding-left:18px;display:flex;flex-direction:column;gap:6px}
+code,.mono{font-family:var(--font-mono);font-size:12.5px}
+.tag{font-family:var(--font-mono);font-size:11.5px;color:var(--muted)}
+svg text{font-family:var(--font-mono)}
+.ax{fill:var(--muted);font-size:11px}
+.axt{fill:var(--muted);font-size:11.5px;font-family:var(--font-body)}
+@media (prefers-reduced-motion:no-preference){ .pair{transition:border-color .15s} }
+.pgnav{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;justify-content:space-between;margin:0 0 14px;font-size:13px}
+.pgnav a{color:var(--accent);text-decoration:none;font-weight:500;padding:6px 0}
+.pgnav a:hover{text-decoration:underline}
+.pgnav .pgname{color:var(--muted)}
+.pgfoot{margin-top:8px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;line-height:1.5}
+.pgfoot a{color:var(--accent)}
+</style>
+
+<div class="wrap">
+<nav class="pgnav" aria-label="Navegação"><a href="index.html">← Menu</a><span class="pgname">Simulador 1 · HPLC simulator</span></nav>
+<header class="top">
+  <div>
+    <h1>HPLC Retention Simulator</h1>
+    <p class="sub">Reversed-phase C18, isocratic, three analytes. Teaching model with illustrative parameters.</p>
+  </div>
+  <div class="actions">
+    <button id="setRef" class="primary" type="button">Set current as reference</button>
+    <button id="resetAll" type="button">Reset all</button>
+  </div>
+</header>
+
+<main class="layout">
+  <section class="plot card" aria-label="Simulated chromatogram">
+    <svg id="chrom" viewBox="0 0 900 380" role="img" aria-label="Simulated chromatogram of three analytes"></svg>
+    <div class="refline" id="refline"></div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <aside class="controls card" aria-label="Method controls">
+    <div class="grp">
+      <h2>Mobile phase</h2>
+      <div class="ctl">
+        <div class="row"><label id="solvlbl">Organic modifier</label></div>
+        <div class="seg" role="radiogroup" aria-labelledby="solvlbl" style="margin-top:6px">
+          <label><input type="radio" name="solv" value="A"><span>Acetonitrile</span></label>
+          <label><input type="radio" name="solv" value="M"><span>Methanol</span></label>
+        </div>
+      </div>
+      <div class="ctl" id="c-B"></div>
+      <div class="ctl" id="c-pH"></div>
+    </div>
+    <div class="grp">
+      <h2>Run conditions</h2>
+      <div class="ctl" id="c-F"></div>
+      <div class="ctl" id="c-T"></div>
+    </div>
+    <div class="grp">
+      <h2>Column and display</h2>
+      <div class="two">
+        <div><label for="L">Length</label><select id="L"><option value="50">50 mm</option><option value="100">100 mm</option><option value="150">150 mm</option><option value="250">250 mm</option></select></div>
+        <div><label for="ID">Inner diameter</label><select id="ID"><option value="2.1">2.1 mm</option><option value="3">3.0 mm</option><option value="4.6">4.6 mm</option></select></div>
+      </div>
+      <div class="two">
+        <div><label for="tmax">Time axis</label><select id="tmax"><option value="auto">Auto (steps)</option><option value="10">0–10 min</option><option value="15">0–15 min</option><option value="20">0–20 min</option><option value="30">0–30 min</option><option value="60">0–60 min</option></select></div>
+        <div></div>
+      </div>
+      <div class="two"><div><label for="phase">Stationary phase</label><select id="phase"><option value="C18">C18 (octadecyl)</option><option value="C8">C8 (octyl)</option><option value="C4">C4 (butyl)</option></select></div><div><label for="dp">Particle size</label><select id="dp"><option value="10">10 µm</option><option value="5">5 µm</option><option value="3.5">3.5 µm</option><option value="3">3 µm</option><option value="2.5">2.5 µm</option><option value="1.7">1.7 µm</option></select></div></div>
+      <label class="chk"><input type="checkbox" id="vdw"> Flow changes efficiency (van Deemter)</label>
+      <label class="chk"><input type="checkbox" id="showRef"> Show grey reference trace</label>
+    </div>
+    <div class="grp">
+      <h2>Quick experiments</h2>
+      <div class="exp" id="exp"></div>
+      <div class="tag">Each button restarts from the default method, then changes one thing.</div>
+    </div>
+    <div class="grp">
+      <h2>Analytes</h2>
+      <div id="anaBox"></div>
+    </div>
+  </aside>
+
+  <section class="readouts" aria-label="Results">
+    <div class="tiles" id="tiles"></div>
+    <div class="card">
+      <h2>Retention</h2>
+      <div class="tblwrap"><table id="tbl"></table></div>
+    </div>
+    <div class="card">
+      <h2>Separation of neighbouring peaks</h2>
+      <div class="pairs" id="pairs"></div>
+    </div>
+    <div class="card">
+      <h2>Flags</h2>
+      <ul class="notes" id="notes"></ul>
+    </div>
+  </section>
+</main>
+
+<section class="card model">
+  <details>
+    <summary>How the model works, and what it does not do</summary>
+    <ul>
+      <li><b>Dead time.</b> <code>t0 = 0.65 × V_column / F</code>. Retention time <code>tR = t0 (1 + k)</code>. Flow changes t0 and tR, not k.</li>
+      <li><b>Organic strength.</b> <code>log k = log kw + Δ − S·φ</code>, with separate kw and S for ACN and MeOH per analyte, so the two solvents can reorder peaks. <span class="tag">[Certain] form; parameters invented</span></li>
+      <li><b>Stationary phase.</b> Shorter alkyl chains retain less: log kw is scaled by 0.86 (C8) and 0.74 (C4), and S by 0.94 and 0.88. Hydrophobic analytes lose more retention than polar ones, so selectivity shifts a little. Silanol effects on bases and efficiency differences between phases are not modelled. <span class="tag">[Likely] trend; [Guessing] magnitudes</span></li>
+      <li><b>Temperature.</b> van't Hoff with Q = 11–14 kJ/mol, about 1.4 % less k per °C near 30 °C. Selectivity can drift because Q differs per analyte. <span class="tag">[Likely]</span></li>
+      <li><b>pH.</b> Fast ionisation equilibrium: <code>k = kN (fN + 0.05 (1 − fN))</code>, so the ionised form is 20× less retained. Apparent pKa moves +0.012 per % B for acids and −0.004 for bases. <span class="tag">[Likely] direction; [Guessing] magnitudes</span></li>
+      <li><b>Efficiency.</b> <code>H = (dp/5)(6 + 3/f + 3f) µm</code>, <code>f = F (dp/5) / (ID/4.6)²</code>. Written in reduced terms (h = H/dp, ν ∝ u·dp), so F_opt ∝ 1/dp and H at the optimum ∝ dp. N = L / H. Peaks are Gaussian, <code>σ = tR / √N</code>. <span class="tag">[Likely] dp scaling; [Guessing] coefficients</span></li>
+      <li><b>Area and height.</b> Area ∝ 1/F (concentration detector). Height ∝ 1/σ, so it falls as k rises in isocratic mode.</li>
+      <li><b>Pressure.</b> Kozeny–Carman, ΔP ∝ 1/dp², mixture viscosity from a Grunberg–Nissan fit, ×1.6 for hardware. Limit assumed 400 bar for dp ≥ 3 µm and 1000 bar below. Order of magnitude only. <span class="tag">[Certain] 1/dp²; [Guessing] absolute values and limits</span></li>
+      <li><b>Not modelled:</b> gradients, THF, extra-column volume (so N for sub-3 µm is optimistic), viscous heating, peak tailing, buffer strength, temperature effect on pKa, mixing of overlapping peaks beyond simple addition.</li>
+    </ul>
+  </details>
+</section>
+<footer class="pgfoot">© 2026 Paulo Sérgio Marques Pereira. Developed for the Intensive Hands-On HPLC Course (1st edition). Licensed under <a href="licenca.html">CC BY-NC 4.0</a>: share and adapt for non-commercial use, with attribution.<br>O autor do software não se responsabiliza por qualquer dano em sistemas físicos de HPLC. O simulador deve ser utilizado com sentido crítico e sempre confirmado por análise prática e cálculos efetuados.</footer>
+</div>
+
+<script>
+/* ===== MODEL ===== */
+const DEF={F:1,T:30,B:40,pH:3,solv:'A',L:150,ID:4.6,dp:5,vdw:true,tmax:'auto',phase:'C18'};
+const PHASE={C18:{kw:1,S:1},C8:{kw:0.86,S:0.94},C4:{kw:0.74,S:0.88}};
+const ANA0=[
+  {type:'neutral',pKa:5.0,hyd:0,resp:1.0,Q:11,A:[1.9,3.6],M:[2.3,3.9]},
+  {type:'acid',pKa:4.2,hyd:0,resp:0.8,Q:13,A:[2.15,4.0],M:[2.0,4.2]},
+  {type:'base',pKa:9.0,hyd:0,resp:1.2,Q:14,A:[3.45,4.5],M:[3.55,5.2]}
+];
+const clone=o=>JSON.parse(JSON.stringify(o));
+
+function viscosity(phi,solv,T){
+  const lw=Math.log(0.890), lo=Math.log(solv==='A'?0.369:0.544), G=solv==='A'?1.64:3.5;
+  const l=(1-phi)*lw+phi*lo+phi*(1-phi)*G;
+  return Math.exp(l)*Math.exp(1800*(1/(T+273.15)-1/298.15)); // mPa s
+}
+function compute(s,a){
+  const phi=s.B/100, Tk=s.T+273.15, Tr=303.15;
+  const Vcol=Math.PI*Math.pow(s.ID/20,2)*(s.L/10);
+  const V0=0.65*Vcol, t0=V0/s.F;
+  const dp=s.dp||5, dpr=dp/5;               // particle size, um; dpr = relative to the 5 um reference
+  const f=s.F*dpr/Math.pow(s.ID/4.6,2);      // reduced velocity: F_opt scales as 1/dp
+  const H=dpr*(s.vdw?(6+3/f+3*f):12);        // um; h = H/dp is dp-independent
+  const N=s.L*1000/H;
+  const eta=viscosity(phi,s.solv,s.T);
+  const us=(s.F*1e-6/60)/(Math.PI*Math.pow(s.ID/2000,2));
+  const K0=Math.pow(dp*1e-6,2)*Math.pow(0.4,3)/(180*Math.pow(0.6,2));
+  const P=1.6*(eta*1e-3)*us*(s.L/1000)/K0/1e5;
+  const rows=a.map((x,i)=>{
+    const p0=s.solv==='A'?x.A:x.M, pf=PHASE[s.phase||'C18'];
+    const p=[p0[0]*pf.kw,p0[1]*pf.S];
+    const kN=Math.pow(10,p[0]+x.hyd-p[1]*phi)*Math.exp(x.Q*1000/8.314*(1/Tk-1/Tr));
+    let fN=1,pKa=null;
+    if(x.type!=='neutral'){
+      pKa=x.pKa+(x.type==='acid'?0.012:-0.004)*s.B;
+      fN=x.type==='acid'?1/(1+Math.pow(10,s.pH-pKa)):1/(1+Math.pow(10,pKa-s.pH));
+    }
+    const k=kN*(fN+0.05*(1-fN));
+    const tR=t0*(1+k), sig=tR/Math.sqrt(N);
+    const h=14*x.resp*(1/s.F)/(sig*Math.sqrt(2*Math.PI));
+    return {i,k,fN,pKa,tR,sig,h,type:x.type};
+  });
+  const Plim=dp<3?1000:400;                  // bar, assumed hardware class
+  return {t0,N,P,H,Plim,eta,V0,rows};
+}
+function resolutions(res){
+  const r=[...res.rows].sort((a,b)=>a.tR-b.tR), out=[];
+  for(let j=0;j<r.length-1;j++){
+    const a=r[j], b=r[j+1];
+    out.push({a:a.i,b:b.i,Rs:(b.tR-a.tR)/(2*(a.sig+b.sig)),alpha:b.k/a.k});
+  }
+  return out;
+}
+/* ===== END MODEL ===== */
+
+const $=s=>document.querySelector(s);
+const STEPS=[10,15,20,30,45,60,90,120,180,240];
+const COL=['var(--c1)','var(--c2)','var(--c3)'];
+let st=clone(DEF), ana=clone(ANA0), ref={st:clone(DEF),ana:clone(ANA0)}, showRef=true;
+
+const SL={
+  B:['% B (organic)','%',5,95,1,v=>v.toFixed(0)+' %'],
+  pH:['Mobile phase pH','',2,10,0.1,v=>v.toFixed(1)],
+  F:['Flow rate','mL/min',0.2,2,0.05,v=>v.toFixed(2)+' mL/min'],
+  T:['Column temperature','°C',20,60,1,v=>v.toFixed(0)+' °C']
+};
+function slider(id,label,unit,min,max,step){
+  return `<div class="row"><label for="${id}">${label}</label><output id="${id}-o" for="${id}"></output></div>
+  <input type="range" id="${id}" min="${min}" max="${max}" step="${step}">
+  <div class="lim"><span>${min}</span><span>${max}${unit?' '+unit:''}</span></div>`;
+}
+Object.keys(SL).forEach(id=>{const d=SL[id];$('#c-'+id).innerHTML=slider(id,d[0],d[1]==='%'?'%':d[1],d[2],d[3],d[4]);});
+
+const TYPES={neutral:'neutral',acid:'weak acid',base:'weak base'};
+$('#anaBox').innerHTML=ana.map((_,i)=>`
+<details class="an" ${i===0?'':''}>
+  <summary><span class="dot" style="background:${COL[i]}"></span><span id="anaName${i}"></span></summary>
+  <div class="body">
+    <div class="two"><div><label for="typ${i}">Type</label>
+      <select id="typ${i}"><option value="neutral">Neutral</option><option value="acid">Weak acid</option><option value="base">Weak base</option></select></div><div></div></div>
+    <div class="ctl" id="pkaWrap${i}">${slider('pka'+i,'pKa (in water)','',2,12,0.1)}</div>
+    <div class="ctl">${slider('hyd'+i,'Hydrophobicity shift (Δ log kw)','',-1,1,0.05)}</div>
+  </div>
+</details>`).join('');
+
+const EXPS=[
+  ['Flow × 0.5',{F:0.5}],['% B 40 → 55',{B:55}],['% B 40 → 30',{B:30}],['Temperature +20 °C',{T:50}],
+  ['ACN → MeOH',{solv:'M'}],['pH 3 → 7',{pH:7}],['pH 3 → 10',{pH:10}],
+  ['5 → 3 µm',{dp:3}],['5 → 1.7 µm',{dp:1.7}],['1.7 µm, 50 mm',{dp:1.7,L:50}]
+];
+$('#exp').innerHTML=EXPS.map((e,i)=>`<button type="button" data-e="${i}">${e[0]}</button>`).join('');
+
+function anaLabel(i){
+  const x=ana[i];
+  return `Analyte ${i+1}: ${TYPES[x.type]}${x.type==='neutral'?'':', pKa '+x.pKa.toFixed(1)}`;
+}
+function syncUI(){
+  ['B','pH','F','T'].forEach(id=>{$('#'+id).value=st[id];$('#'+id+'-o').textContent=SL[id][5](+st[id]);});
+  document.querySelectorAll('input[name=solv]').forEach(r=>r.checked=(r.value===st.solv));
+  $('#phase').value=st.phase; $('#dp').value=String(st.dp); $('#L').value=String(st.L); $('#ID').value=String(st.ID); $('#tmax').value=String(st.tmax);
+  $('#vdw').checked=st.vdw; $('#showRef').checked=showRef;
+  ana.forEach((x,i)=>{
+    $('#typ'+i).value=x.type; $('#pka'+i).value=x.pKa; $('#hyd'+i).value=x.hyd;
+    $('#pka'+i+'-o').textContent=x.pKa.toFixed(1); $('#hyd'+i+'-o').textContent=(x.hyd>=0?'+':'')+x.hyd.toFixed(2);
+    $('#pkaWrap'+i).hidden=(x.type==='neutral');
+    $('#anaName'+i).textContent=anaLabel(i);
+  });
+}
+
+/* ===== drawing helpers ===== */
+function nice125(v){const e=Math.pow(10,Math.floor(Math.log10(v)));const m=v/e;return (m<=1?1:m<=2?2:m<=5?5:10)*e;}
+function pickT(cur){
+  if(st.tmax!=='auto')return +st.tmax;
+  const m=Math.max(...cur.rows.map(r=>r.tR))*1.08;
+  return STEPS.find(x=>x>=m)||STEPS[STEPS.length-1];
+}
+function trace(res,tmax){
+  const set=new Set(), n=700;
+  for(let i=0;i<=n;i++)set.add(+(tmax*i/n).toFixed(5));
+  res.rows.forEach(r=>{
+    if(r.tR-5*r.sig>tmax)return;
+    for(let j=0;j<=60;j++){const t=r.tR+(j-30)/30*4.5*r.sig; if(t>=0&&t<=tmax)set.add(+t.toFixed(5));}
+  });
+  const ts=[...set].sort((a,b)=>a-b);
+  const per=res.rows.map(r=>ts.map(t=>r.h*Math.exp(-0.5*Math.pow((t-r.tR)/r.sig,2))));
+  const total=ts.map((_,j)=>per.reduce((s,p)=>s+p[j],0));
+  return {ts,per,total};
+}
+function totAt(res,t){return res.rows.reduce((s,r)=>s+r.h*Math.exp(-0.5*Math.pow((t-r.tR)/r.sig,2)),0);}
+const fmt=(v,d=2)=>v>999?'>999':v.toFixed(d);
+
+function drawChrom(cur,rf){
+  const W=900,Ht=380,ml=58,mr=18,mt=16,mb=44,pw=W-ml-mr,ph=Ht-mt-mb;
+  const tmax=pickT(cur);
+  const tc=trace(cur,tmax), tr=trace(rf,tmax);
+  const vmax=Math.max(1,...tc.total,...(showRef?tr.total:[0]));
+  const ys=nice125(vmax*1.12/5), ymax=Math.ceil(vmax*1.12/ys)*ys;
+  const X=t=>ml+t/tmax*pw, Y=v=>mt+ph-v/ymax*ph;
+  let s=`<defs><clipPath id="clip"><rect x="${ml}" y="${mt}" width="${pw}" height="${ph}"/></clipPath></defs>`;
+  const xs=nice125(tmax/8);
+  for(let t=0;t<=tmax+1e-9;t+=xs){
+    s+=`<line x1="${X(t)}" y1="${mt}" x2="${X(t)}" y2="${mt+ph}" stroke="var(--grid)"/><text class="ax" x="${X(t)}" y="${mt+ph+16}" text-anchor="middle">${+t.toFixed(2)}</text>`;
+  }
+  for(let v=0;v<=ymax+1e-9;v+=ys){
+    s+=`<line x1="${ml}" y1="${Y(v)}" x2="${ml+pw}" y2="${Y(v)}" stroke="var(--grid)"/><text class="ax" x="${ml-8}" y="${Y(v)+4}" text-anchor="end">${+v.toFixed(2)}</text>`;
+  }
+  s+=`<text class="axt" x="${ml+pw/2}" y="${Ht-6}" text-anchor="middle">Time (min)</text>`;
+  s+=`<text class="axt" transform="translate(14 ${mt+ph/2}) rotate(-90)" text-anchor="middle">Response (mAU, illustrative)</text>`;
+  s+=`<rect x="${ml}" y="${mt}" width="${pw}" height="${ph}" fill="none" stroke="var(--line)"/>`;
+  s+=`<g clip-path="url(#clip)">`;
+  if(showRef){
+    s+=`<path d="${tr.ts.map((t,j)=>(j?'L':'M')+X(t).toFixed(1)+','+Y(tr.total[j]).toFixed(1)).join('')}" fill="none" stroke="var(--ref)" stroke-width="1.8"/>`;
+  }
+  cur.rows.forEach((r,i)=>{
+    const idx=[];tc.ts.forEach((t,j)=>{if(Math.abs(t-r.tR)<=4.5*r.sig)idx.push(j);});
+    if(idx.length<2)return;
+    const pts=idx.map(j=>X(tc.ts[j]).toFixed(1)+','+Y(tc.per[i][j]).toFixed(1));
+    s+=`<path d="M${pts[0].split(',')[0]},${Y(0)} L${pts.join(' L')} L${pts[pts.length-1].split(',')[0]},${Y(0)} Z" fill="${COL[i]}" fill-opacity=".28" stroke="${COL[i]}" stroke-width="1.6"/>`;
+  });
+  s+=`<path d="${tc.ts.map((t,j)=>(j?'L':'M')+X(t).toFixed(1)+','+Y(tc.total[j]).toFixed(1)).join('')}" fill="none" stroke="var(--fg)" stroke-width="1" stroke-opacity=".55"/>`;
+  s+=`</g>`;
+  if(cur.t0<tmax){
+    s+=`<line x1="${X(cur.t0)}" y1="${mt}" x2="${X(cur.t0)}" y2="${mt+ph}" stroke="var(--muted)" stroke-dasharray="4 4"/><text class="ax" x="${X(cur.t0)+4}" y="${mt+12}">t0 ${cur.t0.toFixed(2)}</text>`;
+  }
+  const vis=cur.rows.filter(r=>r.tR<=tmax).sort((a,b)=>a.tR-b.tR);
+  let lastX=-1e9,lvl=0;
+  vis.forEach(r=>{
+    const x=X(r.tR);
+    lvl=(x-lastX<52)?lvl+1:0; lastX=x;
+    const y=Math.max(mt+12,Y(totAt(cur,r.tR))-14-lvl*20);
+    s+=`<circle cx="${x}" cy="${y}" r="8.5" fill="${COL[r.i]}"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="11" font-weight="600" fill="#fff">${r.i+1}</text>`;
+    s+=`<text class="ax" x="${x+12}" y="${y+4}">${r.tR.toFixed(2)}</text>`;
+  });
+  let off=0;
+  cur.rows.filter(r=>r.tR>tmax).sort((a,b)=>a.tR-b.tR).forEach(r=>{
+    s+=`<text x="${ml+pw-8}" y="${mt+16+off*17}" text-anchor="end" font-size="12" font-weight="500" fill="${COL[r.i]}">${r.i+1} → ${r.tR>999?'>999':r.tR.toFixed(1)} min</text>`;
+    off++;
+  });
+  $('#chrom').innerHTML=s;
+}
+
+function describe(s){
+  return `${s.B.toFixed(0)} % ${s.solv==='A'?'ACN':'MeOH'} · pH ${(+s.pH).toFixed(1)} · ${(+s.F).toFixed(2)} mL/min · ${(+s.T).toFixed(0)} °C · ${s.phase||'C18'} ${s.L}×${s.ID} mm, ${s.dp||5} µm`;
+}
+function orderStr(res){return [...res.rows].sort((a,b)=>a.tR-b.tR).map(r=>r.i+1).join(' → ');}
+
+function render(){
+  const cur=compute(st,ana), rf=compute(ref.st,ref.ana);
+  drawChrom(cur,rf);
+  $('#refline').textContent='Reference: '+describe(ref.st);
+  $('#legend').innerHTML=ana.map((_,i)=>`<span><i style="background:${COL[i]}"></i>${anaLabel(i)}</span>`).join('')
+    +(showRef?`<span><i class="refsw"></i>reference trace</span>`:'')
+    +`<span><svg width="14" height="8" aria-hidden="true"><line x1="0" y1="4" x2="14" y2="4" stroke="currentColor" stroke-dasharray="3 3"/></svg> t0 (unretained)</span>`;
+
+  const o=orderStr(cur), o0=orderStr(rf), changed=o!==o0;
+  const pcls=cur.P>cur.Plim?'bad':cur.P>0.75*cur.Plim?'warn':'';
+  $('#tiles').innerHTML=[
+    ['Dead time t0',cur.t0.toFixed(2)+' min','ref '+rf.t0.toFixed(2),''],
+    ['Plates N',Math.round(cur.N).toLocaleString('en-US'),'H '+cur.H.toFixed(1)+' µm · ref '+Math.round(rf.N).toLocaleString('en-US'),''],
+    ['Back-pressure','~'+Math.round(cur.P)+' bar','ref ~'+Math.round(rf.P)+' · limit ~'+cur.Plim+' bar',pcls],
+    ['Elution order',o,changed?'changed (ref '+o0+')':'same as reference',changed?'warn':'']
+  ].map(t=>`<div class="tile ${t[3]}"><div class="k">${t[0]}</div><div class="v">${t[1]}</div><div class="s">${t[2]}</div></div>`).join('');
+
+  let h=`<thead><tr><th>Analyte</th><th>State at this pH</th><th class="n">k</th><th class="n">tR (min)</th><th class="n">W (min)</th><th class="n">tR vs ref</th></tr></thead><tbody>`;
+  cur.rows.forEach(r=>{
+    const state=r.type==='neutral'?'neutral':(Math.round(r.fN*100)+' % neutral');
+    const d=r.tR-rf.rows[r.i].tR, dc=Math.abs(d)<0.005?'':(d>0?'up':'down');
+    h+=`<tr><td><span class="dot" style="background:${COL[r.i]}"></span>${r.i+1}</td><td>${state}</td><td class="n">${fmt(r.k)}</td><td class="n">${fmt(r.tR)}</td><td class="n">${fmt(4*r.sig,3)}</td><td class="n ${dc}">${Math.abs(d)<0.005?'0.00':(d>0?'+':'−')+fmt(Math.abs(d))}</td></tr>`;
+  });
+  $('#tbl').innerHTML=h+'</tbody>';
+
+  const R=resolutions(cur), R0=resolutions(rf);
+  $('#pairs').innerHTML=R.map((p,j)=>{
+    const c=p.Rs>=1.5?'ok':p.Rs>=1?'mid':'bad';
+    const lab=p.Rs>=1.5?'baseline resolved':p.Rs>=1?'partial overlap':'co-eluting / overlapping';
+    const r0=R0[j]?` · ref ${R0[j].Rs.toFixed(2)}`:'';
+    return `<div class="pair ${c}"><div class="t">${p.a+1} then ${p.b+1}</div><div class="r">Rs ${p.Rs>99?'>99':p.Rs.toFixed(2)}</div><div class="t mono">α ${p.alpha.toFixed(2)}${r0}</div><div class="d">${lab}</div></div>`;
+  }).join('');
+
+  const notes=[];
+  if(st.pH>8)notes.push(['b',`pH ${(+st.pH).toFixed(1)} is above the silica limit (about 8) for a conventional C18. Use a hybrid or polymer column.`]);
+  if(st.pH<=2)notes.push(['w','pH 2 or lower hydrolyses the bonded phase of many silica columns over time.']);
+  if(cur.P>cur.Plim)notes.push(['b',`Estimated back-pressure ${Math.round(cur.P)} bar is above the assumed ${cur.Plim} bar limit (${cur.Plim>400?'UHPLC':'HPLC'} hardware for ${st.dp} µm). Lower the flow, raise the temperature, use a shorter column or larger particles.`]);
+  else if(cur.P>0.75*cur.Plim)notes.push(['w',`Estimated back-pressure ${Math.round(cur.P)} bar is close to the assumed ${cur.Plim} bar limit.`]);
+  if(st.dp<3)notes.push(['i','Sub-3 µm particles: N assumes negligible extra-column dispersion and UHPLC-class hardware. On a conventional system the real N gain is smaller, especially for short or 2.1 mm columns.']);
+  if(st.T>=55)notes.push(['w','High temperature: check column, mobile phase and analyte stability.']);
+  cur.rows.forEach(r=>{
+    if(r.type!=='neutral'&&Math.abs(st.pH-r.pKa)<2)
+      notes.push(['w',`Analyte ${r.i+1}: pH is within 2 units of its apparent pKa (${r.pKa.toFixed(1)} at this % B). Retention shifts strongly with small pH or composition errors. Aim for 2 or more units away.`]);
+  });
+  const sw=cur.rows.some(r=>false);
+  if(changed)notes.push(['i',`Elution order differs from the reference (${o} versus ${o0}). Check peak identity before comparing runs.`]);
+  if(cur.rows.some(r=>r.tR>pickT(cur)))notes.push(['i','At least one peak elutes after the displayed time window. Choose a longer time axis.']);
+  if(!notes.length)notes.push(['i','No warnings for these settings.']);
+  $('#notes').innerHTML=notes.map(n=>`<li class="${n[0]}">${n[1]}</li>`).join('');
+}
+
+/* ===== events ===== */
+['B','pH','F','T'].forEach(id=>$('#'+id).addEventListener('input',e=>{st[id]=+e.target.value;$('#'+id+'-o').textContent=SL[id][5](+e.target.value);render();}));
+document.querySelectorAll('input[name=solv]').forEach(r=>r.addEventListener('change',e=>{st.solv=e.target.value;render();}));
+$('#phase').addEventListener('change',e=>{st.phase=e.target.value;render();});
+$('#dp').addEventListener('change',e=>{st.dp=+e.target.value;render();});
+$('#L').addEventListener('change',e=>{st.L=+e.target.value;render();});
+$('#ID').addEventListener('change',e=>{st.ID=+e.target.value;render();});
+$('#tmax').addEventListener('change',e=>{st.tmax=e.target.value;render();});
+$('#vdw').addEventListener('change',e=>{st.vdw=e.target.checked;render();});
+$('#showRef').addEventListener('change',e=>{showRef=e.target.checked;render();});
+ana.forEach((_,i)=>{
+  $('#typ'+i).addEventListener('change',e=>{ana[i].type=e.target.value;syncUI();render();});
+  $('#pka'+i).addEventListener('input',e=>{ana[i].pKa=+e.target.value;$('#pka'+i+'-o').textContent=ana[i].pKa.toFixed(1);$('#anaName'+i).textContent=anaLabel(i);render();});
+  $('#hyd'+i).addEventListener('input',e=>{ana[i].hyd=+e.target.value;$('#hyd'+i+'-o').textContent=(ana[i].hyd>=0?'+':'')+ana[i].hyd.toFixed(2);render();});
+});
+$('#exp').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-e]'); if(!b)return;
+  Object.assign(st,clone(DEF),EXPS[+b.dataset.e][1]); syncUI(); render();
+});
+$('#setRef').addEventListener('click',()=>{ref={st:clone(st),ana:clone(ana)};showRef=true;syncUI();render();});
+$('#resetAll').addEventListener('click',()=>{st=clone(DEF);ana=clone(ANA0);ref={st:clone(DEF),ana:clone(ANA0)};showRef=true;syncUI();render();});
+
+syncUI(); render();
+</script>
+
+</body></html>
