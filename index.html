@@ -1,9 +1,9 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
-<title>Simuladores HPLC</title>
+<!doctype html><html lang="en"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>HPLC Simulators</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap">
 <style>
-/* Layout: cabeçalho com traço de cromatograma, dois botões de simulador lado a lado, botão de licença por baixo, depois créditos e dúvidas. */
+/* Layout: header with a chromatogram trace, two simulator buttons side by side, licence button below, then credits and contact. */
 :root {
   --bg: #eef2f4;
   --surface: #ffffff;
@@ -101,52 +101,52 @@ h2 { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.1em; t
 <div class="wrap">
   <header>
     <p class="eyebrow">Intensive Hands-On HPLC Course · 1st edition</p>
-    <h1>Simuladores HPLC</h1>
-    <p class="lead">Duas ferramentas de apoio ao curso: um simulador de retenção em fase reversa e uma calculadora de consumo de solventes.</p>
+    <h1>HPLC Simulators</h1>
+    <p class="lead">Two tools to support the course: a reversed-phase retention simulator and a solvent consumption calculator.</p>
     <svg class="trace" viewBox="0 0 900 84" preserveAspectRatio="none" aria-hidden="true">
       <line class="base" x1="0" y1="78" x2="900" y2="78"/>
       <path class="line" id="trace-path" d=""/>
     </svg>
   </header>
 
-  <nav class="menu" aria-label="Menu principal">
+  <nav class="menu" aria-label="Main menu">
     <a class="btn b1" href="hplc-simulator.html">
-      <span class="k">Simulador 1</span>
+      <span class="k">Simulator 1</span>
       <span class="t">HPLC simulator</span>
-      <span class="d">Retenção, resolução e pressão em fase reversa. Ajuste fase móvel, fluxo, temperatura e coluna e veja o cromatograma mudar.</span>
-      <span class="go">Abrir <span aria-hidden="true">→</span></span>
+      <span class="d">Retention, resolution and back-pressure in reversed phase. Adjust the mobile phase, flow rate, temperature and column, and watch the chromatogram change.</span>
+      <span class="go">Open <span aria-hidden="true">→</span></span>
     </a>
     <a class="btn b2" href="consumo-solventes.html">
-      <span class="k">Simulador 2</span>
-      <span class="t">Calculadora de consumo de solventes</span>
-      <span class="d">Volume de A, B, C e D para um gradiente, com número de injeções e excesso de segurança.</span>
-      <span class="go">Abrir <span aria-hidden="true">→</span></span>
+      <span class="k">Simulator 2</span>
+      <span class="t">Solvent consumption calculator</span>
+      <span class="d">Volume of solvents A, B, C and D for a gradient, from the number of injections and a safety excess.</span>
+      <span class="go">Open <span aria-hidden="true">→</span></span>
     </a>
     <a class="btn b3" href="licenca.html">
       <span class="txt">
-        <span class="k">Licença</span>
+        <span class="k">Licence</span>
         <span class="t">CC BY-NC 4.0</span>
-        <span class="d">Pode usar, alterar e adaptar para fins não comerciais, com atribuição.</span>
+        <span class="d">You may use, modify and adapt it for non-commercial purposes, with attribution.</span>
       </span>
-      <span class="go">Ver licença <span aria-hidden="true">→</span></span>
+      <span class="go">View licence <span aria-hidden="true">→</span></span>
     </a>
   </nav>
 
-  <section class="info" aria-label="Informação">
+  <section class="info" aria-label="Information">
     <div>
-      <h2>Desenvolvido por</h2>
-      <p>Paulo Sérgio Marques Pereira para o curso <span class="course">“Intensive Hands-On HPLC Course 1st edition”</span>.</p>
+      <h2>Developed by</h2>
+      <p>Paulo Sérgio Marques Pereira for the course <span class="course">“Intensive Hands-On HPLC Course 1st edition”</span>.</p>
     </div>
     <div>
-      <h2>Dúvidas?</h2>
+      <h2>Questions?</h2>
       <p><a href="mailto:paulo.m.pereira95@gmail.com">paulo.m.pereira95@gmail.com</a></p>
       <p class="links"><a href="https://github.com/PauloSMP" target="_blank" rel="noopener">GitHub</a> · <a href="https://www.linkedin.com/in/paulosmp/" target="_blank" rel="noopener">LinkedIn</a></p>
     </div>
   </section>
 
   <footer class="foot">
-    <p class="note">Os simuladores são modelos de ensino com parâmetros ilustrativos. Não substituem o desenvolvimento nem a validação de métodos no laboratório.</p>
-    <p class="note">O autor do software não se responsabiliza por qualquer dano em sistemas físicos de HPLC. O simulador deve ser utilizado com sentido crítico e sempre confirmado por análise prática e cálculos efetuados.</p>
+    <p class="note">The simulators are teaching models with illustrative parameters. They do not replace method development or validation in the laboratory.</p>
+    <p class="note">The author of the software accepts no liability for any damage to physical HPLC systems. The simulator should be used with critical judgement and always confirmed by practical analysis and calculations.</p>
   </footer>
 </div>
 
