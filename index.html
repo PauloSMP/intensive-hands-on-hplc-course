@@ -75,6 +75,8 @@ h1 { font-family: var(--font-display); font-size: clamp(2rem, 6vw, 3rem); line-h
 .btn .go span { display: inline-block; }
 .b1 .k, .b1 .go { color: var(--accent); }
 .b2 .k, .b2 .go { color: var(--accent2); }
+.b4 { grid-column: 1 / -1; }
+.b4 .k, .b4 .go { color: var(--accent); }  
 .b3 { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .b3 .k, .b3 .go { color: var(--muted); }
 .b3 .txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -120,6 +122,12 @@ h2 { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.1em; t
       <span class="k">Simulator 2</span>
       <span class="t">Solvent consumption calculator</span>
       <span class="d">Volume of solvents A, B, C and D for a gradient, from the number of injections and a safety excess.</span>
+      <span class="go">Open <span aria-hidden="true">→</span></span>
+    </a>
+    <a class="btn b4" href="hplc-calibration.html">
+      <span class="k">Reference</span>
+      <span class="t">HPLC calibration methods</span>
+      <span class="d">External standard, internal standard and standard addition: concepts, worked examples and a decision guide.</span>
       <span class="go">Open <span aria-hidden="true">→</span></span>
     </a>
     <a class="btn b3" href="licenca.html">
