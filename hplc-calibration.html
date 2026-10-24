@@ -57,11 +57,8 @@ b,strong{font-weight:700}
   border-bottom:1px solid var(--line);display:flex;align-items:center;gap:4px;padding:8px 12px;overflow-x:auto;white-space:nowrap}
 .bar a{font-size:13.5px;font-weight:500;text-decoration:none;color:var(--ink-2);padding:6px 11px;border-radius:5px}
 .bar a:hover{background:var(--brand-t);color:var(--brand)}
-.bar button{margin-left:auto;font:500 13px var(--f-body);color:var(--brand);background:transparent;border:1px solid var(--line);border-radius:5px;padding:6px 12px;cursor:pointer;white-space:nowrap}
-.bar button[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#fff}
 
 .paper{max-width:1000px;margin:0 auto;background:var(--paper);box-shadow:var(--shadow)}
-.paper[contenteditable="true"]{outline:2px dashed var(--teal);outline-offset:-8px}
 .pad{padding:44px 56px}
 section.sec{border-top:1px solid var(--line)}
 
@@ -205,7 +202,6 @@ ol.steps b.t{display:block;margin-bottom:2px}
   <a href="#adicao">3 · Standard addition</a>
   <a href="#comparacao">Comparison</a>
   <a href="#decisao">Decision guide</a>
-  <button id="edit" type="button" aria-pressed="false">Edit text</button>
 </div>
 
 <main class="paper" id="doc">
@@ -503,15 +499,6 @@ ol.steps b.t{display:block;margin-bottom:2px}
 
 <script>
 (function(){
-  var doc=document.getElementById('doc'), btn=document.getElementById('edit');
-  Array.prototype.forEach.call(doc.querySelectorAll('figure,.sim'),function(el){el.setAttribute('contenteditable','false');});
-  btn.addEventListener('click',function(){
-    var on=doc.getAttribute('contenteditable')==='true';
-    if(on){doc.removeAttribute('contenteditable');}else{doc.setAttribute('contenteditable','true');}
-    btn.setAttribute('aria-pressed',String(!on));
-    btn.textContent=on?'Edit text':'Finish editing';
-  });
-
   var rec=document.getElementById('rec');
   function f(v,d){return v.toFixed(d).replace('-','−');}
   function put(id,t,bad){var e=document.getElementById(id);e.textContent=t;if(bad!==undefined){e.className=bad?'bad':'';}}
