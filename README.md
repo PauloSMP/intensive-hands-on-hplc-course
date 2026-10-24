@@ -35,13 +35,11 @@ The page includes a worked example for each method, with all abbreviations and s
 
 ## Use
 
-Open `index.html` in any modern browser. No installation or build step. Keep all five files in the same folder, because the pages link to each other.
+Offline version: Open `index.html` in any modern browser. No installation or build step. Keep all five files in the same folder, because the pages link to each other.
 
 Online version: https://paulosmp.github.io/intensive-hands-on-hplc-course/ (after enabling GitHub Pages)
 
 The pages load fonts from Google Fonts. Offline they fall back to system fonts and everything still works.
-
-To save the calibration page as a PDF, open it and print (Ctrl+P). The layout is set for A4, one section per page.
 
 ## Notes on the models
 
